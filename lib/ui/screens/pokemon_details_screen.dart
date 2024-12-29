@@ -1,16 +1,22 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pokedex/model/pokemon_model.dart';
 import 'package:pokedex/repose/hive_repos.dart';
 import 'package:pokedex/ui/widgets/rotating_widget.dart';
 import 'package:pokedex/utils/helpers.dart';
 
-class PokemonDetailScreen extends StatelessWidget {
+import '../../providers/favorite_check_provider.dart';
+
+class PokemonDetailScreen extends ConsumerWidget {
   PokemonDetailScreen({super.key, required this.pokemon});
   final PokemonModel pokemon;
   final HiveRepo hiveRepo = HiveRepo();
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final isFavorite = ref.watch(favoritePokemonsProvider).any(
+          (fav) => fav.id == pokemon.id,
+        );
     final height = MediaQuery.of(context).size.height;
     final width = MediaQuery.of(context).size.width;
     return Scaffold(
@@ -28,11 +34,24 @@ class PokemonDetailScreen extends StatelessWidget {
         actions: [
           IconButton(
               color: Colors.white,
-              onPressed: () {
-                hiveRepo.addPokemonToHive(pokemon);
+              onPressed: () async {
+                ref
+                    .read(favoritePokemonsProvider.notifier)
+                    .toggleFavorite(pokemon);
+
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      isFavorite
+                          ? 'Removed from Favorites'
+                          : 'Added to Favorites',
+                    ),
+                    duration: const Duration(seconds: 1),
+                  ),
+                );
               },
-              icon: const Icon(
-                Icons.favorite_border_outlined,
+              icon: Icon(
+                isFavorite ? Icons.favorite : Icons.favorite_border_outlined,
               ))
         ],
       ),

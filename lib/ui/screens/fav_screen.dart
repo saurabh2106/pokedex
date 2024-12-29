@@ -1,32 +1,19 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:pokedex/model/pokemon_model.dart';
-import 'package:pokedex/repose/hive_repos.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pokedex/ui/screens/pokemon_details_screen.dart';
 import 'package:pokedex/utils/helpers.dart';
 
-class FavScreen extends StatefulWidget {
+import '../../providers/favorite_check_provider.dart';
+
+class FavScreen extends ConsumerWidget {
   const FavScreen({super.key});
 
   @override
-  State<FavScreen> createState() => _FavScreenState();
-}
+  Widget build(BuildContext context, WidgetRef ref) {
+    // Watch the favorites list from the provider
+    final favPokemon = ref.watch(favoritePokemonsProvider);
 
-class _FavScreenState extends State<FavScreen> {
-  List<PokemonModel> favPokemon = [];
-  final HiveRepo hiveRepo = HiveRepo();
-
-  @override
-  void initState() {
-    super.initState();
-    Future.microtask(() async {
-      favPokemon = await hiveRepo.getAllFavPokeFromHive();
-      setState(() {});
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
     return Scaffold(
       body: CustomScrollView(
         slivers: [
@@ -50,8 +37,8 @@ class _FavScreenState extends State<FavScreen> {
                   itemCount: favPokemon.length,
                   itemBuilder: (context, index) {
                     return GestureDetector(
-                      onTap: () {
-                        Navigator.of(context).push(
+                      onTap: () async {
+                        await Navigator.of(context).push(
                           MaterialPageRoute(
                             builder: (context) {
                               return PokemonDetailScreen(
@@ -85,9 +72,9 @@ class _FavScreenState extends State<FavScreen> {
                                     width: 100,
                                     imageUrl: favPokemon[index].imageurl ?? '',
                                     placeholder: (context, url) =>
-                                        const CircularProgressIndicator(), // Optional
+                                        const CircularProgressIndicator(),
                                     errorWidget: (context, url, error) =>
-                                        const Icon(Icons.error), // Optional
+                                        const Icon(Icons.error),
                                   ),
                                 ],
                               ),
@@ -119,12 +106,12 @@ class _FavScreenState extends State<FavScreen> {
                               Column(
                                 children: [
                                   IconButton(
-                                      onPressed: () async {
-                                        await hiveRepo.deletePokeFromHive(
-                                            favPokemon[index].id!);
-                                        setState(() {
-                                          favPokemon.removeAt(index);
-                                        });
+                                      onPressed: () {
+                                        ref
+                                            .read(favoritePokemonsProvider
+                                                .notifier)
+                                            .toggleFavorite(favPokemon[
+                                                index]); // Remove from favorites
                                       },
                                       icon: const Icon(Icons.delete)),
                                 ],

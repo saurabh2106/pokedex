@@ -28,4 +28,10 @@ class HiveRepo {
 
     await pokedox.delete(id);
   }
+
+  Future<bool> isPokemonInFavorites(String id) async {
+    final pokedox = await Hive.openBox<PokemonModel>(pokedoxName);
+
+    return pokedox.containsKey(id);
+  }
 }

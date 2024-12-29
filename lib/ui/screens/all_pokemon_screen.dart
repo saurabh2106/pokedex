@@ -37,7 +37,10 @@ class AllPokemonScreen extends ConsumerWidget {
               icon: const Icon(Icons.lightbulb_outline),
             )
           ],
-          title: const Text('Pokedex'),
+          title: Text(
+            'Pokedex',
+            style: Theme.of(context).textTheme.headlineLarge,
+          ),
           centerTitle: true,
         ),
         body: pokemonData.when(data: (pokemonList) {
